@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "xaver.clang-format",
+        "espressif.esp-idf-extension"
+    ]
+}
