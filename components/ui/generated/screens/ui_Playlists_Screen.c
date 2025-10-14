@@ -8,8 +8,110 @@
 lv_obj_t * uic_Playlists_Back_Btn;
 lv_obj_t * uic_Playlists_Screen;
 lv_obj_t * ui_Playlists_Screen = NULL;
+lv_obj_t * ui_Playlists_Container = NULL;
+lv_obj_t * ui_Playlists_Title_Panel = NULL;
+lv_obj_t * ui_Playlists_Title_Label = NULL;
+lv_obj_t * ui_Playlist_Panel = NULL;
+lv_obj_t * ui_Playlist_Name_Label = NULL;
+lv_obj_t * ui_Playlist_Panel1 = NULL;
+lv_obj_t * ui_Playlist_Name_Label1 = NULL;
+lv_obj_t * ui_Playlist_Panel2 = NULL;
+lv_obj_t * ui_Playlist_Name_Label2 = NULL;
+lv_obj_t * ui_Playlist_Panel3 = NULL;
+lv_obj_t * ui_Playlist_Name_Label3 = NULL;
+lv_obj_t * ui_Playlist_Panel4 = NULL;
+lv_obj_t * ui_Playlist_Name_Label4 = NULL;
+lv_obj_t * ui_Playlist_Panel5 = NULL;
+lv_obj_t * ui_Playlist_Name_Label5 = NULL;
+lv_obj_t * ui_Playlist_Panel6 = NULL;
+lv_obj_t * ui_Playlist_Name_Label6 = NULL;
+lv_obj_t * ui_Playlist_Panel7 = NULL;
+lv_obj_t * ui_Playlist_Name_Label7 = NULL;
+lv_obj_t * ui_Playlist_Panel8 = NULL;
+lv_obj_t * ui_Playlist_Name_Label8 = NULL;
 lv_obj_t * ui_Playlists_Back_Btn = NULL;
 // event funtions
+void ui_event_Playlist_Panel(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel1(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel2(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel3(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel4(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel5(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel6(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel7(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
+void ui_event_Playlist_Panel8(lv_event_t * e)
+{
+    lv_event_code_t event_code = lv_event_get_code(e);
+
+    if(event_code == LV_EVENT_CLICKED) {
+        _ui_screen_change(&ui_PlayList_Screen, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_PlayList_Screen_screen_init);
+    }
+}
+
 void ui_event_Playlists_Back_Btn(lv_event_t * e)
 {
     lv_event_code_t event_code = lv_event_get_code(e);
@@ -30,6 +132,207 @@ void ui_Playlists_Screen_screen_init(void)
     lv_obj_set_style_bg_img_src(ui_Playlists_Screen, &ui_img_1151404881, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_opa(ui_Playlists_Screen, 50, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_Playlists_Container = lv_obj_create(ui_Playlists_Screen);
+    lv_obj_remove_style_all(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlists_Container, 360);
+    lv_obj_set_height(ui_Playlists_Container, 360);
+    lv_obj_set_align(ui_Playlists_Container, LV_ALIGN_CENTER);
+    lv_obj_set_flex_flow(ui_Playlists_Container, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui_Playlists_Container, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlists_Container, LV_OBJ_FLAG_CLICKABLE);      /// Flags
+    lv_obj_set_scroll_dir(ui_Playlists_Container, LV_DIR_VER);
+    lv_obj_set_scroll_snap_y(ui_Playlists_Container, LV_SCROLL_SNAP_CENTER);
+
+    ui_Playlists_Title_Panel = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlists_Title_Panel, 360);
+    lv_obj_set_height(ui_Playlists_Title_Panel, 50);
+    lv_obj_set_x(ui_Playlists_Title_Panel, 19);
+    lv_obj_set_y(ui_Playlists_Title_Panel, 8);
+    lv_obj_set_align(ui_Playlists_Title_Panel, LV_ALIGN_TOP_MID);
+    lv_obj_clear_flag(ui_Playlists_Title_Panel, LV_OBJ_FLAG_PRESS_LOCK | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlists_Title_Panel, lv_color_hex(0x1DDA63), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlists_Title_Panel, 30, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlists_Title_Panel, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlists_Title_Panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlists_Title_Label = lv_label_create(ui_Playlists_Title_Panel);
+    lv_obj_set_width(ui_Playlists_Title_Label, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlists_Title_Label, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlists_Title_Label, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlists_Title_Label, "Playlists");
+    lv_obj_set_style_text_font(ui_Playlists_Title_Label, &lv_font_montserrat_26, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel, 360);
+    lv_obj_set_height(ui_Playlist_Panel, 50);
+    lv_obj_set_align(ui_Playlist_Panel, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label = lv_label_create(ui_Playlist_Panel);
+    lv_obj_set_width(ui_Playlist_Name_Label, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel1 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel1, 360);
+    lv_obj_set_height(ui_Playlist_Panel1, 50);
+    lv_obj_set_align(ui_Playlist_Panel1, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel1, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel1, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel1, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel1, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label1 = lv_label_create(ui_Playlist_Panel1);
+    lv_obj_set_width(ui_Playlist_Name_Label1, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label1, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label1, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label1, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label1, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel2 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel2, 360);
+    lv_obj_set_height(ui_Playlist_Panel2, 50);
+    lv_obj_set_align(ui_Playlist_Panel2, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel2, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel2, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel2, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel2, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel2, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label2 = lv_label_create(ui_Playlist_Panel2);
+    lv_obj_set_width(ui_Playlist_Name_Label2, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label2, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label2, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label2, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label2, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel3 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel3, 360);
+    lv_obj_set_height(ui_Playlist_Panel3, 50);
+    lv_obj_set_align(ui_Playlist_Panel3, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel3, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel3, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel3, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel3, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel3, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel3, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel3, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label3 = lv_label_create(ui_Playlist_Panel3);
+    lv_obj_set_width(ui_Playlist_Name_Label3, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label3, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label3, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label3, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label3, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel4 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel4, 360);
+    lv_obj_set_height(ui_Playlist_Panel4, 50);
+    lv_obj_set_align(ui_Playlist_Panel4, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel4, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel4, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel4, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel4, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel4, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel4, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel4, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label4 = lv_label_create(ui_Playlist_Panel4);
+    lv_obj_set_width(ui_Playlist_Name_Label4, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label4, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label4, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label4, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label4, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel5 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel5, 360);
+    lv_obj_set_height(ui_Playlist_Panel5, 50);
+    lv_obj_set_align(ui_Playlist_Panel5, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel5, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel5, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel5, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel5, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel5, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label5 = lv_label_create(ui_Playlist_Panel5);
+    lv_obj_set_width(ui_Playlist_Name_Label5, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label5, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label5, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label5, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label5, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel6 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel6, 360);
+    lv_obj_set_height(ui_Playlist_Panel6, 50);
+    lv_obj_set_align(ui_Playlist_Panel6, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel6, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel6, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel6, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel6, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel6, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel6, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel6, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label6 = lv_label_create(ui_Playlist_Panel6);
+    lv_obj_set_width(ui_Playlist_Name_Label6, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label6, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label6, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label6, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label6, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel7 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel7, 360);
+    lv_obj_set_height(ui_Playlist_Panel7, 50);
+    lv_obj_set_align(ui_Playlist_Panel7, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel7, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel7, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel7, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel7, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel7, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel7, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel7, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label7 = lv_label_create(ui_Playlist_Panel7);
+    lv_obj_set_width(ui_Playlist_Name_Label7, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label7, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label7, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label7, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label7, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Playlist_Panel8 = lv_obj_create(ui_Playlists_Container);
+    lv_obj_set_width(ui_Playlist_Panel8, 360);
+    lv_obj_set_height(ui_Playlist_Panel8, 50);
+    lv_obj_set_align(ui_Playlist_Panel8, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_Playlist_Panel8, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Playlist_Panel8, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel8, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_color(ui_Playlist_Panel8, lv_color_hex(0x413C3C), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_opa(ui_Playlist_Panel8, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Playlist_Panel8, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_opa(ui_Playlist_Panel8, 150, LV_PART_MAIN | LV_STATE_PRESSED);
+
+    ui_Playlist_Name_Label8 = lv_label_create(ui_Playlist_Panel8);
+    lv_obj_set_width(ui_Playlist_Name_Label8, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Playlist_Name_Label8, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Playlist_Name_Label8, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_Playlist_Name_Label8, "Playlist Name");
+    lv_obj_set_style_text_font(ui_Playlist_Name_Label8, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+
     ui_Playlists_Back_Btn = lv_btn_create(ui_Playlists_Screen);
     lv_obj_set_width(ui_Playlists_Back_Btn, 50);
     lv_obj_set_height(ui_Playlists_Back_Btn, 50);
@@ -45,6 +348,15 @@ void ui_Playlists_Screen_screen_init(void)
     lv_obj_set_style_bg_color(ui_Playlists_Back_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
     lv_obj_set_style_bg_opa(ui_Playlists_Back_Btn, 255, LV_PART_MAIN | LV_STATE_PRESSED);
 
+    lv_obj_add_event_cb(ui_Playlist_Panel, ui_event_Playlist_Panel, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel1, ui_event_Playlist_Panel1, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel2, ui_event_Playlist_Panel2, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel3, ui_event_Playlist_Panel3, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel4, ui_event_Playlist_Panel4, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel5, ui_event_Playlist_Panel5, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel6, ui_event_Playlist_Panel6, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel7, ui_event_Playlist_Panel7, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(ui_Playlist_Panel8, ui_event_Playlist_Panel8, LV_EVENT_ALL, NULL);
     lv_obj_add_event_cb(ui_Playlists_Back_Btn, ui_event_Playlists_Back_Btn, LV_EVENT_ALL, NULL);
     uic_Playlists_Screen = ui_Playlists_Screen;
     uic_Playlists_Back_Btn = ui_Playlists_Back_Btn;
@@ -58,6 +370,27 @@ void ui_Playlists_Screen_screen_destroy(void)
     // NULL screen variables
     uic_Playlists_Screen = NULL;
     ui_Playlists_Screen = NULL;
+    ui_Playlists_Container = NULL;
+    ui_Playlists_Title_Panel = NULL;
+    ui_Playlists_Title_Label = NULL;
+    ui_Playlist_Panel = NULL;
+    ui_Playlist_Name_Label = NULL;
+    ui_Playlist_Panel1 = NULL;
+    ui_Playlist_Name_Label1 = NULL;
+    ui_Playlist_Panel2 = NULL;
+    ui_Playlist_Name_Label2 = NULL;
+    ui_Playlist_Panel3 = NULL;
+    ui_Playlist_Name_Label3 = NULL;
+    ui_Playlist_Panel4 = NULL;
+    ui_Playlist_Name_Label4 = NULL;
+    ui_Playlist_Panel5 = NULL;
+    ui_Playlist_Name_Label5 = NULL;
+    ui_Playlist_Panel6 = NULL;
+    ui_Playlist_Name_Label6 = NULL;
+    ui_Playlist_Panel7 = NULL;
+    ui_Playlist_Name_Label7 = NULL;
+    ui_Playlist_Panel8 = NULL;
+    ui_Playlist_Name_Label8 = NULL;
     uic_Playlists_Back_Btn = NULL;
     ui_Playlists_Back_Btn = NULL;
 

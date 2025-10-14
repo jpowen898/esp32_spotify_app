@@ -34,11 +34,11 @@ void ui_init(void)
                                                true, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
     ui_Main_Screen_screen_init();
-    ui_PlayList_Screen_screen_init();
     ui_Now_Playing_Screen_screen_init();
     ui_Queue_Screen_screen_init();
-    ui_Settings_Screen_screen_init();
     ui_Playlists_Screen_screen_init();
+    ui_PlayList_Screen_screen_init();
+    ui_Settings_Screen_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
     lv_disp_load_scr(ui_Main_Screen);
 }
@@ -46,9 +46,9 @@ void ui_init(void)
 void ui_destroy(void)
 {
     ui_Main_Screen_screen_destroy();
-    ui_PlayList_Screen_screen_destroy();
     ui_Now_Playing_Screen_screen_destroy();
     ui_Queue_Screen_screen_destroy();
-    ui_Settings_Screen_screen_destroy();
     ui_Playlists_Screen_screen_destroy();
+    ui_PlayList_Screen_screen_destroy();
+    ui_Settings_Screen_screen_destroy();
 }

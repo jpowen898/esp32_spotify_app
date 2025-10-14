@@ -38,7 +38,7 @@
 
 #define EXAMPLE_USE_TOUCH  1 //Without tp ---- Touch off
 
-//#define Backlight_Testing
+// #define Backlight_Testing
 // #define EXAMPLE_Rotate_90
 
 //encoder
