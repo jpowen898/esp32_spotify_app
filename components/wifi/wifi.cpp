@@ -398,8 +398,8 @@ void register_ping_cmd(void)
 
 extern void register_wifi_cmd(void)
 {
-    register_wifi_init();
-    register_ap_set();
+    // register_wifi_init();
+    // register_ap_set();
     register_sta_connect();
     register_light_sleep();
     register_ping_cmd();
@@ -410,7 +410,20 @@ void espwifi_Init(void)
     ESP_ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     esp_netif_create_default_wifi_sta();
-    esp_netif_create_default_wifi_ap();
+    // esp_netif_create_default_wifi_ap();
 
     register_wifi_cmd();
+
+    initialize_wifi(0, NULL); // initialize wifi on startup
+
+    // auto connect if ssid is set
+    if (s_ssid.get().length() && s_password.get().length())
+    {
+        char* argv[4];
+        argv[0] = (char*) "sta_connect";
+        argv[1] = (char*) s_ssid.get().c_str();
+        argv[2] = (char*) s_password.get().c_str();
+        argv[3] = NULL;
+        cmd_do_sta_connect(3, argv);
+    }
 }
