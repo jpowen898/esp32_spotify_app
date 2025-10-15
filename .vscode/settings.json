@@ -1,6 +1,13 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.espIdfPath": "/home/jpowen/esp/v5.5.1/esp-idf",
+  "C_Cpp.default.includePath": [
+    "${workspaceFolder}/**",
+    "/home/jpowen/esp/v5.5.1/esp-idf/components/**"
+  ],
+  "C_Cpp.default.defines": [
+    "ESP_PLATFORM"
+  ],
   "idf.pythonInstallPath": "/usr/bin/python3",
   "idf.openOcdConfigs": [
     "board/esp32s3-builtin.cfg"
