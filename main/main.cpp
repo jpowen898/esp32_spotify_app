@@ -23,7 +23,7 @@
 
 #include "ParamMgr.h"
 #include "ConsoleCommands.h"
-#include "esp_wifi_bsp.h"
+#include "wifi.h"
 
 static const char* TAG = "main";
 

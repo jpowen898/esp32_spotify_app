@@ -1,5 +1,5 @@
 idf_component_register(
-  SRCS "esp_wifi_bsp.cpp"
+  SRCS "wifi.cpp"
 
   PRIV_REQUIRES
     "esp_event"
@@ -8,5 +8,8 @@ idf_component_register(
   REQUIRES
     "esp_wifi"
     "param"
+    "console"
+    "esp_pm"
+    "wpa_supplicant"
 
   INCLUDE_DIRS "./")
