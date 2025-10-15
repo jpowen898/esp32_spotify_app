@@ -11,5 +11,6 @@ idf_component_register(
     "console"
     "esp_pm"
     "wpa_supplicant"
+    "lwip"
 
   INCLUDE_DIRS "./")

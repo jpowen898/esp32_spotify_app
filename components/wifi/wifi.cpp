@@ -8,11 +8,6 @@
 
 params::Param<std::string> s_ssid{"wifi_ssid", std::string("")};
 params::Param<std::string> s_password{"wifi_password", std::string("")};
-/*
- * SPDX-FileCopyrightText: 2022-2023 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: Apache-2.0
- */
 
 #include <stdio.h>
 #include <string.h>
@@ -23,6 +18,9 @@ params::Param<std::string> s_password{"wifi_password", std::string("")};
 #include "argtable3/argtable3.h"
 #include "esp_pm.h"
 #include "esp_private/esp_clk.h"
+#include "lwip/ip_addr.h"
+#include "ping/ping_sock.h"
+#include "lwip/inet.h"
 
 #define MAX_RECONNECT_TIMES (5)
 
@@ -284,12 +282,127 @@ static void register_light_sleep(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+typedef struct
+{
+    struct arg_str* host;
+    struct arg_end* end;
+} ping_args_t;
+static ping_args_t ping_args;
+static void        cmd_ping_on_ping_success(esp_ping_handle_t hdl, void* args)
+{
+    uint8_t   ttl;
+    uint16_t  seqno;
+    uint32_t  elapsed_time, recv_len;
+    ip_addr_t target_addr;
+    esp_ping_get_profile(hdl, ESP_PING_PROF_SEQNO, &seqno, sizeof(seqno));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_TTL, &ttl, sizeof(ttl));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_IPADDR, &target_addr, sizeof(target_addr));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_SIZE, &recv_len, sizeof(recv_len));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_TIMEGAP, &elapsed_time, sizeof(elapsed_time));
+    ESP_LOGI(TAG, "%lu bytes from %s icmp_seq=%u ttl=%u time=%lu ms", recv_len,
+             ipaddr_ntoa((ip_addr_t*) &target_addr), seqno, ttl, elapsed_time);
+}
+static void cmd_ping_on_ping_timeout(esp_ping_handle_t hdl, void* args)
+{
+    uint16_t  seqno;
+    ip_addr_t target_addr;
+    esp_ping_get_profile(hdl, ESP_PING_PROF_SEQNO, &seqno, sizeof(seqno));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_IPADDR, &target_addr, sizeof(target_addr));
+    ESP_LOGI(TAG, "From %s icmp_seq=%d timeout", ipaddr_ntoa((ip_addr_t*) &target_addr), seqno);
+}
+static void cmd_ping_on_ping_end(esp_ping_handle_t hdl, void* args)
+{
+    ip_addr_t target_addr;
+    uint32_t  transmitted;
+    uint32_t  received;
+    uint32_t  total_time_ms;
+    esp_ping_get_profile(hdl, ESP_PING_PROF_REQUEST, &transmitted, sizeof(transmitted));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_REPLY, &received, sizeof(received));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_IPADDR, &target_addr, sizeof(target_addr));
+    esp_ping_get_profile(hdl, ESP_PING_PROF_DURATION, &total_time_ms, sizeof(total_time_ms));
+    uint32_t loss = (uint32_t) ((1 - ((float) received) / transmitted) * 100);
+    ESP_LOGI(TAG, "\n--- %s ping statistics ---", inet6_ntoa(*ip_2_ip6(&target_addr)));
+    ESP_LOGI(TAG, "%lu packets transmitted, %lu received, %lu%% packet loss, time %lums",
+             transmitted, received, loss, total_time_ms);
+    // delete the ping sessions, so that we clean up all resources and can create a new ping session
+    // we don't have to call delete function in the callback, instead we can call delete function from other tasks
+    esp_ping_delete_session(hdl);
+}
+static int do_ping_cmd(int argc, char** argv)
+{
+    esp_ping_config_t config = ESP_PING_DEFAULT_CONFIG();
+    config.task_stack_size   = 4096;
+    ip_addr_t target_addr    = {0};
+
+    int nerrors = arg_parse(argc, argv, (void**) &ping_args);
+    if (nerrors != 0)
+    {
+        arg_print_errors(stderr, ping_args.end, argv[0]);
+        return 1;
+    }
+
+    // if (!g_nan_netif)
+    // {
+    //     ESP_LOGE(TAG, "NAN not started successfully");
+    //     return 1;
+    // }
+
+    if (ping_args.host->count)
+    {
+        /* convert ip6 string to ip6 address */
+        ipaddr_aton(ping_args.host->sval[0], &target_addr);
+    }
+    else
+    {
+        ESP_LOGE(TAG, "No Active datapath for ping");
+        return 1;
+    }
+
+    config.target_addr = target_addr;
+    // config.interface   = esp_netif_get_netif_impl_index(g_nan_netif);
+
+    /* set callback functions */
+    esp_ping_callbacks_t cbs = {
+        .on_ping_success = cmd_ping_on_ping_success,
+        .on_ping_timeout = cmd_ping_on_ping_timeout,
+        .on_ping_end     = cmd_ping_on_ping_end,
+    };
+    esp_ping_handle_t ping;
+    if (esp_ping_new_session(&config, &cbs, &ping) == ESP_OK)
+    {
+        ESP_LOGI(TAG, "Pinging Peer with IPv6 addr %s", ipaddr_ntoa((ip_addr_t*) &target_addr));
+        esp_ping_start(ping);
+        return 0;
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Failed to ping Peer with IPv6 addr %s",
+                 ipaddr_ntoa((ip_addr_t*) &target_addr));
+        return 1;
+    }
+    return 0;
+}
+void register_ping_cmd(void)
+{
+    ping_args.host = arg_str1(NULL, NULL, "<host>", "Host address");
+    ping_args.end  = arg_end(1);
+
+    const esp_console_cmd_t ping_cmd = {.command  = "ping",
+                                        .help     = "send ICMP ECHO_REQUEST to network hosts",
+                                        .hint     = NULL,
+                                        .func     = &do_ping_cmd,
+                                        .argtable = &ping_args};
+
+    ESP_ERROR_CHECK(esp_console_cmd_register(&ping_cmd));
+}
+
 extern void register_wifi_cmd(void)
 {
     register_wifi_init();
     register_ap_set();
     register_sta_connect();
     register_light_sleep();
+    register_ping_cmd();
 }
 
 void espwifi_Init(void)
