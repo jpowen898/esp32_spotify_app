@@ -21,14 +21,22 @@
 #include "ui.h"
 #include "display_init.h"
 
+#include "ParamMgr.h"
+#include "ConsoleCommands.h"
+#include "wifi.h"
+
 static const char* TAG = "main";
 
 extern "C" void app_main(void)
 {
+    ConsoleCommandsInit();
+    espwifi_Init();
     ESP_LOGI(TAG, "Starting Spotify App\n");
 
     display_init();
     ui_init();
+
+    params::ParamMgr::getInstance().listAll();
 
     while (1)
         vTaskSuspend(NULL);
