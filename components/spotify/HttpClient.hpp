@@ -86,15 +86,45 @@ public:
         esp_log_level_set("http", level);
     }
 
+    /**
+     * @brief Perform an HTTP request with specified method and return parsed JSON response
+     * @param method HTTP method to use (GET, POST, PUT)
+     * @param url The complete URL to send the request to
+     * @param header_key Optional custom header key
+     * @param header_value Optional custom header value
+     * @param body Request body content
+     * @param user Username for basic authentication
+     * @param password Password for basic authentication
+     * @param ignore_response If true, don't parse response as JSON
+     * @return JSON object containing the parsed response, or empty JSON if ignore_response is true
+     */
+    std::unique_ptr<json> performRequest(esp_http_client_method_t method, const std::string& url,
+                                         const std::string& header_key   = "",
+                                         const std::string& header_value = "",
+                                         const std::string& body = "", const std::string& user = "",
+                                         const std::string& password        = "",
+                                         bool               ignore_response = false);
+
+    /**
+     * @brief Perform an HTTP request with specified method and return raw response as string
+     * @param method HTTP method to use (GET, POST, PUT)
+     * @param url The complete URL to send the request to
+     * @param header_key Optional custom header key
+     * @param header_value Optional custom header value
+     * @param body Request body content
+     * @param user Username for basic authentication
+     * @param password Password for basic authentication
+     * @param ignore_response If true, don't read response body
+     * @return String containing the raw response body, or nullptr on error
+     */
+    std::unique_ptr<std::string>
+    performRequestRaw(esp_http_client_method_t method, const std::string& url,
+                      const std::string& header_key = "", const std::string& header_value = "",
+                      const std::string& body = "", const std::string& user = "",
+                      const std::string& password = "", bool ignore_response = false);
+
 private:
     const char* TAG = "HttpClient"; ///< Log tag for ESP-IDF logging
-
-    std::unique_ptr<json> performRequest(esp_http_client_method_t method, const std::string& url,
-                                         const std::string& header_key,
-                                         const std::string& header_value, const std::string& body,
-                                         const std::string& user, const std::string& password,
-                                         bool ignore_response);
-
     /**
      * @brief Check if a string contains valid JSON format
      * @param str String to check for JSON format

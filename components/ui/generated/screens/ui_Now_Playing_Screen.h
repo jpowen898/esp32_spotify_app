@@ -14,6 +14,7 @@ extern "C" {
 extern void ui_Now_Playing_Screen_screen_init(void);
 extern void ui_Now_Playing_Screen_screen_destroy(void);
 extern lv_obj_t * ui_Now_Playing_Screen;
+extern lv_obj_t * ui_Album_Art_Image;
 extern lv_obj_t * ui_Wifi_Indicator;
 extern lv_obj_t * ui_Song_Label;
 extern lv_obj_t * ui_Artist_Label;

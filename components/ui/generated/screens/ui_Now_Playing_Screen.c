@@ -19,6 +19,7 @@ lv_obj_t * uic_Song_Label;
 lv_obj_t * uic_Wifi_Indicator;
 lv_obj_t * uic_Now_Playing_Screen;
 lv_obj_t * ui_Now_Playing_Screen = NULL;
+lv_obj_t * ui_Album_Art_Image = NULL;
 lv_obj_t * ui_Wifi_Indicator = NULL;
 lv_obj_t * ui_Song_Label = NULL;
 lv_obj_t * ui_Artist_Label = NULL;
@@ -60,6 +61,13 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_style_bg_opa(ui_Now_Playing_Screen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_Now_Playing_Screen, &ui_img_1151404881, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_opa(ui_Now_Playing_Screen, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_Album_Art_Image = lv_img_create(ui_Now_Playing_Screen);
+    lv_obj_set_width(ui_Album_Art_Image, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Album_Art_Image, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Album_Art_Image, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Album_Art_Image, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_clear_flag(ui_Album_Art_Image, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_Wifi_Indicator = lv_img_create(ui_Now_Playing_Screen);
     lv_img_set_src(ui_Wifi_Indicator, &ui_img_wifi_off_30dp_e3e3e3_fill0_wght400_grad0_opsz24_png);
@@ -266,6 +274,7 @@ void ui_Now_Playing_Screen_screen_destroy(void)
     // NULL screen variables
     uic_Now_Playing_Screen = NULL;
     ui_Now_Playing_Screen = NULL;
+    ui_Album_Art_Image = NULL;
     uic_Wifi_Indicator = NULL;
     ui_Wifi_Indicator = NULL;
     uic_Song_Label = NULL;

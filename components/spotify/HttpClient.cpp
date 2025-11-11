@@ -85,13 +85,54 @@ std::unique_ptr<json> HttpClient::performRequest(esp_http_client_method_t method
                                                  const std::string& body, const std::string& user,
                                                  const std::string& password, bool ignore_response)
 {
-    esp_err_t                err;
-    std::string              output_buffer;
-    esp_http_client_config_t config = {};
+    std::unique_ptr<std::string> output_buffer = performRequestRaw(
+        method, url, header_key, header_value, body, user, password, ignore_response);
+
+    if (!output_buffer)
+    {
+        return nullptr;
+    }
+
+    if (!isJson(*output_buffer))
+    {
+        if (ignore_response)
+        {
+            return nullptr;
+        }
+        ESP_LOGE(TAG, "Response is not valid JSON: %s", output_buffer->c_str());
+        return nullptr;
+    }
+
+    // parse the json response.
+    nlohmann::json parsed_json = nlohmann::json::parse(*output_buffer, nullptr, false);
+
+    if (parsed_json.is_discarded())
+    {
+        ESP_LOGE(TAG, "Failed to parse JSON: %s", output_buffer->c_str());
+        return nullptr;
+    }
+
+    return std::make_unique<json>(std::move(parsed_json));
+}
+
+std::unique_ptr<std::string>
+HttpClient::performRequestRaw(esp_http_client_method_t method, const std::string& url,
+                              const std::string& header_key, const std::string& header_value,
+                              const std::string& body, const std::string& user,
+                              const std::string& password, bool ignore_response)
+{
+    esp_err_t                    err;
+    std::unique_ptr<std::string> output_buffer = std::make_unique<std::string>();
+    esp_http_client_config_t     config        = {};
     memset(&config, 0, sizeof(config));
     config.url                         = url.c_str();
     config.timeout_ms                  = 10000;
     config.skip_cert_common_name_check = true; // disable CN check
+
+    if (!output_buffer)
+    {
+        return nullptr;
+    }
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
@@ -184,9 +225,9 @@ std::unique_ptr<json> HttpClient::performRequest(esp_http_client_method_t method
     // read response
     if (content_length > 0)
     {
-        output_buffer.resize(content_length);
+        output_buffer->resize(content_length);
         int data_read =
-            esp_http_client_read_response(client, output_buffer.data(), output_buffer.size());
+            esp_http_client_read_response(client, output_buffer->data(), output_buffer->size());
         if (data_read < 0)
         {
             ESP_LOGE(TAG, "Failed to read response");
@@ -203,30 +244,12 @@ std::unique_ptr<json> HttpClient::performRequest(esp_http_client_method_t method
     esp_http_client_close(client);
     esp_http_client_cleanup(client);
 
-    if (output_buffer.empty())
+    if (output_buffer->empty())
     {
         if (!ignore_response)
             ESP_LOGW(TAG, "No response body received");
         return nullptr;
     }
-    if (!isJson(output_buffer))
-    {
-        if (ignore_response)
-        {
-            return nullptr;
-        }
-        ESP_LOGE(TAG, "Response is not valid JSON: %s", output_buffer.c_str());
-        return nullptr;
-    }
 
-    // parse the json response.
-    nlohmann::json parsed_json = nlohmann::json::parse(output_buffer.c_str(), nullptr, false);
-
-    if (parsed_json.is_discarded())
-    {
-        ESP_LOGE(TAG, "Failed to parse JSON: %s", output_buffer.c_str());
-        return nullptr;
-    }
-
-    return std::make_unique<json>(std::move(parsed_json));
+    return output_buffer;
 }

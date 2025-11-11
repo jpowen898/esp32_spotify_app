@@ -5,6 +5,31 @@
 #include "freertos/task.h"
 #include <wifi.h>
 #include <display_init.h>
+#include <ui.h>
+
+static lv_img_dsc_t album_image = {
+    .header =
+        {
+            .cf          = LV_IMG_CF_RAW,
+            .always_zero = 0,
+            .w           = 0,
+            .h           = 0,
+        },
+    .data_size = 0,
+    .data      = nullptr,
+};
+
+#define QUEUE_ACTION(_action_)                                                                     \
+    bool _ret_ = xQueueSend(m_actionQueue, &action, 0) == pdPASS;                                  \
+    if (!_ret_)                                                                                    \
+    {                                                                                              \
+        delete action;                                                                             \
+        return _ret_;                                                                              \
+    }
+
+#define QUEUE_ACTION_AND_RET(_action_)                                                             \
+    QUEUE_ACTION(_action_)                                                                         \
+    return _ret_;
 
 void spotify_cmd_init();
 
@@ -240,6 +265,18 @@ void Spotify::task()
                                     m_currentlyPlayingInfo.currentTrack.album =
                                         std::string((*resp)["item"]["album"]["name"]);
                                 }
+                                if ((*resp)["item"]["album"].contains("images") &&
+                                    (*resp)["item"]["album"]["images"].is_array() &&
+                                    !(*resp)["item"]["album"]["images"].empty())
+                                {
+                                    // Get the first image (usually the largest)
+                                    m_currentlyPlayingInfo.album_art_url =
+                                        std::string((*resp)["item"]["album"]["images"][0]["url"]);
+                                    m_currentlyPlayingInfo.album_art_w =
+                                        (*resp)["item"]["album"]["images"][0]["width"];
+                                    m_currentlyPlayingInfo.album_art_h =
+                                        (*resp)["item"]["album"]["images"][0]["height"];
+                                }
                             }
                             if ((*resp)["item"].contains("duration_ms"))
                             {
@@ -248,10 +285,12 @@ void Spotify::task()
                             }
                             if ((*resp)["item"].contains("uri"))
                             {
+                                // New track started playing, request album art
                                 if (m_currentlyPlayingInfo.currentTrack.track_uri !=
                                     std::string((*resp)["item"]["uri"]))
                                 {
                                     requestQueue();
+                                    getAlbumArt();
                                 }
                                 m_currentlyPlayingInfo.currentTrack.track_uri =
                                     std::string((*resp)["item"]["uri"]);
@@ -551,6 +590,47 @@ void Spotify::task()
                 }
                 break;
 
+                case SpotifyActionType::GetAlbumArt:
+                {
+                    setLogLevel(ESP_LOG_INFO);
+
+                    if (!m_currentlyPlayingInfo.album_art_url.empty() &&
+                        m_currentlyPlayingInfo.album_art_url.find("http") == 0)
+                    {
+                        HttpClient                   httpClient;
+                        std::unique_ptr<std::string> resp = httpClient.performRequestRaw(
+                            HTTP_METHOD_GET, m_currentlyPlayingInfo.album_art_url);
+
+                        if (resp)
+                        {
+                            if (m_currentlyPlayingInfo.album_art_data)
+                            {
+                                m_currentlyPlayingInfo.album_art_data->clear();
+                            }
+
+                            m_currentlyPlayingInfo.album_art_data = std::move(resp);
+                            ESP_LOGI(TAG, "Album art fetched: %s len=%d",
+                                     m_currentlyPlayingInfo.album_art_url.c_str(),
+                                     m_currentlyPlayingInfo.album_art_data->size());
+
+                            album_image.data =
+                                (const uint8_t*) m_currentlyPlayingInfo.album_art_data->data();
+                            album_image.data_size = m_currentlyPlayingInfo.album_art_data->size();
+                            album_image.header.w  = m_currentlyPlayingInfo.album_art_w;
+                            album_image.header.h  = m_currentlyPlayingInfo.album_art_h;
+
+                            ui_lvgl_lock(-1);
+                            lv_img_set_src(ui_Album_Art_Image, &album_image);
+                            uint16_t zoom = 256 * std::min(360.0 / (float) album_image.header.w,
+                                                           360.0 / (float) album_image.header.h);
+                            lv_img_set_zoom(ui_Album_Art_Image, zoom);
+                            ui_lvgl_unlock();
+                        }
+                    }
+
+                    setLogLevel(previous_level);
+                }
+                break;
                 default:
                     break;
             }
@@ -611,14 +691,13 @@ bool Spotify::pause()
 {
     updateCurrentlyPlaying();
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::Pause, m_verbose};
-    bool           ret    = xQueueSend(m_actionQueue, &action, 0) == pdPASS;
-    updatePlaybackState();
-    return ret;
+    QUEUE_ACTION(action);
+    return updatePlaybackState();
 }
 bool Spotify::next()
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::Next, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::previous()
 {
@@ -628,7 +707,7 @@ bool Spotify::previous()
         return seek(0);
     }
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::Previous, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::changeVolume(int volumeDiff)
 {
@@ -660,60 +739,56 @@ bool Spotify::queueSetVolume()
 {
     m_volumeCmdInProgress = true;
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::SetVolume, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::updateCurrentlyPlaying()
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::UpdateCurrentlyPlaying, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::play(std::string song_uri, std::string context_uri)
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::Play, m_verbose};
     action->song_uri      = song_uri;
     action->context_uri   = context_uri;
-    bool ret              = xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION(action);
     updateCurrentlyPlaying();
-    updatePlaybackState();
-    return ret;
+    return updatePlaybackState();
 }
 bool Spotify::updatePlaybackState()
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::UpdatePlaybackState, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::toggleShuffle()
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::ToggleShuffle, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::setRepeatMode(const std::string& mode)
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::SetRepeatMode, m_verbose};
     action->str_param     = mode;
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::seek(int position_ms)
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::Seek, m_verbose};
     action->int_param     = position_ms;
-    if (xQueueSend(m_actionQueue, &action, 0) == pdPASS)
-    {
-        getCurrentlyPlayingInfo().progress_ms = position_ms;
-        return updateCurrentlyPlaying();
-    }
-    return false;
+    QUEUE_ACTION(action);
+    getCurrentlyPlayingInfo().progress_ms = position_ms;
+    return updateCurrentlyPlaying();
 }
 bool Spotify::addToQueue(std::string uri)
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::AddToQueue, m_verbose};
     action->str_param     = uri;
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::requestQueue()
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::GetQueue, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::requestPlaylists(size_t offset, size_t limit)
 {
@@ -725,7 +800,7 @@ bool Spotify::requestPlaylists(size_t offset, size_t limit)
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::GetPlaylists, m_verbose};
     action->int_param     = offset;
     action->int_param2    = limit;
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::requestPlaylist(std::string playlist_id, size_t offset, size_t limit)
 {
@@ -738,12 +813,17 @@ bool Spotify::requestPlaylist(std::string playlist_id, size_t offset, size_t lim
     action->str_param     = playlist_id;
     action->int_param     = offset;
     action->int_param2    = limit;
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
 }
 bool Spotify::requestUserInfo()
 {
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::GetUserInfo, m_verbose};
-    return xQueueSend(m_actionQueue, &action, 0) == pdPASS;
+    QUEUE_ACTION_AND_RET(action);
+}
+bool Spotify::getAlbumArt()
+{
+    SpotifyAction* action = new SpotifyAction{SpotifyActionType::GetAlbumArt, m_verbose};
+    QUEUE_ACTION_AND_RET(action);
 }
 std::string Spotify::TrackInfo::toString()
 {

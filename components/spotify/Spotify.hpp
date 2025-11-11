@@ -73,10 +73,14 @@ public:
      */
     struct CurrentlyPlayingInfo
     {
-        TrackInfo   currentTrack; ///< Information about the currently playing track
-        std::string context_uri;  ///< URI of the context (playlist, album, etc.) being played
-        int         progress_ms;  ///< Playback progress in milliseconds at timestamp
-        uint64_t    timestamp_ms; ///< Timestamp when progress was last updated
+        TrackInfo   currentTrack;  ///< Information about the currently playing track
+        std::string context_uri;   ///< URI of the context (playlist, album, etc.) being played
+        int         progress_ms;   ///< Playback progress in milliseconds at timestamp
+        uint64_t    timestamp_ms;  ///< Timestamp when progress was last updated
+        std::string album_art_url; ///< URL of the album art image
+        std::unique_ptr<std::string> album_art_data; ///< Raw album art image data
+        int                          album_art_w;
+        int                          album_art_h;
 
         /**
          * @brief Get current playback progress accounting for elapsed time
@@ -331,6 +335,12 @@ public:
         m_verbose = verbose;
     }
 
+    /**
+     * @brief Get the album art URL for the currently playing track
+     * @return true if successful
+     */
+    bool getAlbumArt();
+
     static void playlist_play_cb(lv_event_t* e);
     static void playlist_queue_cb(lv_event_t* e);
     static void playlist_shuffle_cb(lv_event_t* e);
@@ -424,7 +434,8 @@ private:
         GetPlaylists,           ///< Get user's playlists
         GetPlaylist,            ///< Get a specific playlist
         GetUserInfo,            ///< Get user information
-        AddToQueue              ///< Add a track to the playback queue
+        AddToQueue,             ///< Add a track to the playback queue
+        GetAlbumArt             ///< Get album art for the currently playing track
     };
 
     /**
