@@ -21,10 +21,9 @@ class SpotifyQueueItem
 {
 public:
     static void song_queue_clicked_cb(lv_event_t* e);
-    static void song_queue_up_clicked_cb(lv_event_t* e);
-    static void song_queue_down_clicked_cb(lv_event_t* e);
     SpotifyQueueItem();
-    SpotifyQueueItem(const std::string& song, const std::string& artist, const std::string& uri);
+    SpotifyQueueItem(const std::string& song, const std::string& artist, const std::string& uri,
+                     const std::string& art_url = "");
     ~SpotifyQueueItem();
     void setSongName(const std::string& name);
     void setArtistName(const std::string& name);
@@ -33,6 +32,7 @@ public:
     std::string song_name;
     std::string artist_name;
     std::string song_uri;
+    std::string album_art_url; ///< URL of the album art for this song
     lv_obj_t*   queue_item_pannel;
     lv_obj_t*   labels_container;
     lv_obj_t*   song_label;

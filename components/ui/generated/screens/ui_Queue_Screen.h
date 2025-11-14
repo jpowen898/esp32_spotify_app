@@ -21,8 +21,6 @@ extern lv_obj_t * ui_Queue_Item_Panel;
 extern lv_obj_t * ui_Queue_Item_Container;
 extern lv_obj_t * ui_Queue_Item_Song_Label;
 extern lv_obj_t * ui_Queue_Item_Artist_Label;
-extern lv_obj_t * ui_Queue_Item_Move_Up_Btn;
-extern lv_obj_t * ui_Queue_Item_Move_Down_Btn;
 extern void ui_event_Queue_Back_Btn(lv_event_t * e);
 extern lv_obj_t * ui_Queue_Back_Btn;
 // CUSTOM VARIABLES

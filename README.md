@@ -4,7 +4,7 @@ This project allows you to control spotify remotely via the [Spotify Web API](ht
 project is specifically designed around the [WaveShare ESP32 Knob](https://www.waveshare.com/wiki/ESP32-S3-Knob-Touch-LCD-1.8). The project allows
 you to play, pause, skip, shuffle, track seek, play and view playlists, and add songs to the spotify queue.
 
-![alt text](example.png)
+![alt text](example.jpg)
 
 ---
 

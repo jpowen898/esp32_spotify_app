@@ -19,6 +19,7 @@ lv_obj_t * uic_Song_Label;
 lv_obj_t * uic_Wifi_Indicator;
 lv_obj_t * uic_Now_Playing_Screen;
 lv_obj_t * ui_Now_Playing_Screen = NULL;
+lv_obj_t * ui_Album_Art_Image = NULL;
 lv_obj_t * ui_Wifi_Indicator = NULL;
 lv_obj_t * ui_Song_Label = NULL;
 lv_obj_t * ui_Artist_Label = NULL;
@@ -61,6 +62,13 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_style_bg_img_src(ui_Now_Playing_Screen, &ui_img_1151404881, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_opa(ui_Now_Playing_Screen, 150, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_Album_Art_Image = lv_img_create(ui_Now_Playing_Screen);
+    lv_obj_set_width(ui_Album_Art_Image, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_Album_Art_Image, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_Album_Art_Image, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Album_Art_Image, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_clear_flag(ui_Album_Art_Image, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
     ui_Wifi_Indicator = lv_img_create(ui_Now_Playing_Screen);
     lv_img_set_src(ui_Wifi_Indicator, &ui_img_wifi_off_30dp_e3e3e3_fill0_wght400_grad0_opsz24_png);
     lv_obj_set_width(ui_Wifi_Indicator, LV_SIZE_CONTENT);   /// 30
@@ -70,6 +78,8 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_align(ui_Wifi_Indicator, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Wifi_Indicator, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
     lv_obj_clear_flag(ui_Wifi_Indicator, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    lv_obj_set_style_bg_color(ui_Wifi_Indicator, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Wifi_Indicator, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_Wifi_Indicator, &ui_img_wifi_30dp_e3e3e3_fill0_wght400_grad0_opsz24_png,
                                 LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_bg_img_opa(ui_Wifi_Indicator, 0, LV_PART_MAIN | LV_STATE_CHECKED);
@@ -87,6 +97,8 @@ void ui_Now_Playing_Screen_screen_init(void)
                                            _ui_theme_alpha_Main);
     lv_obj_set_style_text_align(ui_Song_Label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_Song_Label, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Song_Label, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Song_Label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Artist_Label = lv_label_create(ui_Now_Playing_Screen);
     lv_obj_set_width(ui_Artist_Label, 360);
@@ -101,6 +113,8 @@ void ui_Now_Playing_Screen_screen_init(void)
                                            _ui_theme_alpha_Secondary);
     lv_obj_set_style_text_align(ui_Artist_Label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(ui_Artist_Label, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Artist_Label, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Artist_Label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Song_Time_Played_Label = lv_label_create(ui_Now_Playing_Screen);
     lv_obj_set_width(ui_Song_Time_Played_Label, LV_SIZE_CONTENT);   /// 1
@@ -113,6 +127,8 @@ void ui_Now_Playing_Screen_screen_init(void)
                                            _ui_theme_color_Secondary);
     ui_object_set_themeable_style_property(ui_Song_Time_Played_Label, LV_PART_MAIN | LV_STATE_DEFAULT, LV_STYLE_TEXT_OPA,
                                            _ui_theme_alpha_Secondary);
+    lv_obj_set_style_bg_color(ui_Song_Time_Played_Label, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Song_Time_Played_Label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Song_Time_Remaining_Label = lv_label_create(ui_Now_Playing_Screen);
     lv_obj_set_width(ui_Song_Time_Remaining_Label, LV_SIZE_CONTENT);   /// 1
@@ -125,6 +141,8 @@ void ui_Now_Playing_Screen_screen_init(void)
                                            LV_STYLE_TEXT_COLOR, _ui_theme_color_Secondary);
     ui_object_set_themeable_style_property(ui_Song_Time_Remaining_Label, LV_PART_MAIN | LV_STATE_DEFAULT, LV_STYLE_TEXT_OPA,
                                            _ui_theme_alpha_Secondary);
+    lv_obj_set_style_bg_color(ui_Song_Time_Remaining_Label, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Song_Time_Remaining_Label, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     ui_Now_Playing_Arc = lv_arc_create(ui_Now_Playing_Screen);
     lv_obj_set_width(ui_Now_Playing_Arc, 380);
@@ -151,12 +169,12 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_align(ui_Play_Button, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Play_Button, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Play_Button, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_Play_Button, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_Play_Button, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Play_Button, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Play_Button, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_Play_Button, &ui_img_play_arrow_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Play_Button, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(ui_Play_Button, 0, LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_color(ui_Play_Button, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_opa(ui_Play_Button, 100, LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_bg_img_src(ui_Play_Button, &ui_img_pause_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_bg_color(ui_Play_Button, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
@@ -170,8 +188,8 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_align(ui_Skip_Forward_Btn, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Skip_Forward_Btn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Skip_Forward_Btn, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_Skip_Forward_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_Skip_Forward_Btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Skip_Forward_Btn, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Skip_Forward_Btn, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_Skip_Forward_Btn, &ui_img_skip_next_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(ui_Skip_Forward_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
@@ -185,8 +203,8 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_align(ui_Skip_Back_Btn, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Skip_Back_Btn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Skip_Back_Btn, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_Skip_Back_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_Skip_Back_Btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Skip_Back_Btn, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Skip_Back_Btn, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_Skip_Back_Btn, &ui_img_skip_previous_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(ui_Skip_Back_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
@@ -200,12 +218,12 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_align(ui_Shuffle_Btn, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Shuffle_Btn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Shuffle_Btn, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_Shuffle_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_Shuffle_Btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Shuffle_Btn, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_Shuffle_Btn, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_Shuffle_Btn, &ui_img_shuffle_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(ui_Shuffle_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(ui_Shuffle_Btn, 0, LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_color(ui_Shuffle_Btn, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_CHECKED);
+    lv_obj_set_style_bg_opa(ui_Shuffle_Btn, 100, LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_bg_img_src(ui_Shuffle_Btn, &ui_img_shuffle_on_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_CHECKED);
     lv_obj_set_style_bg_color(ui_Shuffle_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
@@ -219,8 +237,8 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_align(ui_View_Queue_Btn, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_View_Queue_Btn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_View_Queue_Btn, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_View_Queue_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_opa(ui_View_Queue_Btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_View_Queue_Btn, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(ui_View_Queue_Btn, 100, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_View_Queue_Btn, &ui_img_queue_music_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_color(ui_View_Queue_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_PRESSED);
@@ -234,7 +252,7 @@ void ui_Now_Playing_Screen_screen_init(void)
     lv_obj_set_align(ui_Now_Playing_Back_Btn, LV_ALIGN_CENTER);
     lv_obj_add_flag(ui_Now_Playing_Back_Btn, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
     lv_obj_clear_flag(ui_Now_Playing_Back_Btn, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
-    lv_obj_set_style_bg_color(ui_Now_Playing_Back_Btn, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(ui_Now_Playing_Back_Btn, lv_color_hex(0x3C3838), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(ui_Now_Playing_Back_Btn, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_img_src(ui_Now_Playing_Back_Btn, &ui_img_arrow_back_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -266,6 +284,7 @@ void ui_Now_Playing_Screen_screen_destroy(void)
     // NULL screen variables
     uic_Now_Playing_Screen = NULL;
     ui_Now_Playing_Screen = NULL;
+    ui_Album_Art_Image = NULL;
     uic_Wifi_Indicator = NULL;
     ui_Wifi_Indicator = NULL;
     uic_Song_Label = NULL;
