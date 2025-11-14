@@ -13,3 +13,5 @@ dependencies:
   johboh/nlohmann-json:
     version: ^3.12.0
     public: true
+
+  espressif/esp_lv_decoder: '*'

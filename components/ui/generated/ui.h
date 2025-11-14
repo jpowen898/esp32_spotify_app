@@ -53,10 +53,6 @@ LV_IMG_DECLARE(
 LV_IMG_DECLARE(
     ui_img_arrow_back_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png);    // assets/arrow_back_40dp_E3E3E3_FILL0_wght400_GRAD0_opsz40.png
 LV_IMG_DECLARE(
-    ui_img_keyboard_arrow_up_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png);    // assets/keyboard_arrow_up_40dp_E3E3E3_FILL0_wght400_GRAD0_opsz40.png
-LV_IMG_DECLARE(
-    ui_img_keyboard_arrow_down_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png);    // assets/keyboard_arrow_down_40dp_E3E3E3_FILL0_wght400_GRAD0_opsz40.png
-LV_IMG_DECLARE(
     ui_img_playlist_add_40dp_e3e3e3_fill0_wght400_grad0_opsz40_png);    // assets/playlist_add_40dp_E3E3E3_FILL0_wght400_GRAD0_opsz40.png
 
 // UI INIT

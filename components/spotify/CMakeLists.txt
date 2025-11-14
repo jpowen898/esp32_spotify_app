@@ -15,4 +15,6 @@ idf_component_register(
         param
         wifi
         ui
+        esp_new_jpeg
+        libpng
 )

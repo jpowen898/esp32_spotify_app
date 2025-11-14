@@ -6,12 +6,15 @@
 #include <wifi.h>
 #include <display_init.h>
 #include <ui.h>
+#include "esp_jpeg_dec.h"
+#include "png.h"
 
 static lv_img_dsc_t album_image = {
     .header =
         {
             .cf          = LV_IMG_CF_RAW,
             .always_zero = 0,
+            .reserved    = 0,
             .w           = 0,
             .h           = 0,
         },
@@ -32,6 +35,136 @@ static lv_img_dsc_t album_image = {
     return _ret_;
 
 void spotify_cmd_init();
+
+std::unique_ptr<std::string> Spotify::decodeJpegToRgb565(const std::string& jpeg_data,
+                                                         uint16_t& width, uint16_t& height)
+{
+    jpeg_dec_config_t config = DEFAULT_JPEG_DEC_CONFIG();
+    config.output_type =
+        JPEG_PIXEL_FORMAT_RGB565_BE; // Big endian RGB565 for LVGL (LV_COLOR_16_SWAP=y)
+
+    jpeg_dec_handle_t jpeg_dec = nullptr;
+    jpeg_error_t      ret      = jpeg_dec_open(&config, &jpeg_dec);
+    if (ret != JPEG_ERR_OK)
+    {
+        ESP_LOGE(TAG, "Failed to open JPEG decoder: %d", ret);
+        return nullptr;
+    }
+
+    // Parse header to get dimensions
+    jpeg_dec_io_t io;
+    io.inbuf        = (uint8_t*) jpeg_data.data();
+    io.inbuf_len    = jpeg_data.size();
+    io.inbuf_remain = jpeg_data.size();
+
+    jpeg_dec_header_info_t header_info;
+    ret = jpeg_dec_parse_header(jpeg_dec, &io, &header_info);
+    if (ret != JPEG_ERR_OK)
+    {
+        ESP_LOGE(TAG, "Failed to parse JPEG header: %d", ret);
+        jpeg_dec_close(jpeg_dec);
+        return nullptr;
+    }
+
+    width  = header_info.width;
+    height = header_info.height;
+
+    // Get output buffer size
+    int outbuf_len;
+    ret = jpeg_dec_get_outbuf_len(jpeg_dec, &outbuf_len);
+    if (ret != JPEG_ERR_OK)
+    {
+        ESP_LOGE(TAG, "Failed to get output buffer length: %d", ret);
+        jpeg_dec_close(jpeg_dec);
+        return nullptr;
+    }
+
+    // Allocate aligned output buffer
+    uint8_t* outbuf = (uint8_t*) jpeg_calloc_align(outbuf_len, 16);
+    if (!outbuf)
+    {
+        ESP_LOGE(TAG, "Failed to allocate output buffer");
+        jpeg_dec_close(jpeg_dec);
+        return nullptr;
+    }
+
+    // Reset IO for decoding
+    io.inbuf        = (uint8_t*) jpeg_data.data();
+    io.inbuf_len    = jpeg_data.size();
+    io.inbuf_remain = jpeg_data.size();
+    io.outbuf       = outbuf;
+    io.out_size     = outbuf_len;
+
+    // Decode the image
+    ret = jpeg_dec_process(jpeg_dec, &io);
+    jpeg_dec_close(jpeg_dec);
+
+    if (ret != JPEG_ERR_OK)
+    {
+        ESP_LOGE(TAG, "Failed to decode JPEG: %d", ret);
+        jpeg_free_align(outbuf);
+        return nullptr;
+    }
+
+    // Copy to std::string for consistent memory management
+    auto result = std::make_unique<std::string>((char*) outbuf, outbuf_len);
+    jpeg_free_align(outbuf);
+
+    ESP_LOGI(TAG, "Successfully decoded JPEG: %dx%d, size=%d", width, height, outbuf_len);
+    return result;
+}
+
+// Helper function to download and decode album art
+std::unique_ptr<Spotify::AlbumArt> Spotify::downloadAndDecodeAlbumArt(const std::string& url)
+{
+    if (url.empty() || url.find("http") != 0)
+    {
+        return nullptr;
+    }
+
+    ESP_LOGI(TAG, "Downloading album art from: %s", url.c_str());
+
+    HttpClient                   httpClient;
+    std::unique_ptr<std::string> resp = httpClient.performRequestRaw(HTTP_METHOD_GET, url);
+
+    if (!resp || resp->empty())
+    {
+        ESP_LOGE(TAG, "Failed to download album art");
+        return nullptr;
+    }
+
+    // Decode the image
+    uint16_t                     width = 0, height = 0;
+    std::unique_ptr<std::string> decoded_data = nullptr;
+
+    // Check if it's a JPEG (starts with FF D8) or PNG (starts with 89 50 4E 47)
+    if (resp->size() >= 4)
+    {
+        uint8_t* data = (uint8_t*) resp->data();
+        if (data[0] == 0xFF && data[1] == 0xD8)
+        {
+            // JPEG image
+            decoded_data = decodeJpegToRgb565(*resp, width, height);
+        }
+    }
+
+    if (!decoded_data || !width || !height)
+    {
+        ESP_LOGE(TAG, "Failed to decode album art");
+        return nullptr;
+    }
+
+    auto albumArt    = std::make_unique<Spotify::AlbumArt>();
+    albumArt->data   = std::move(decoded_data);
+    albumArt->width  = width;
+    albumArt->height = height;
+    albumArt->url    = url;
+
+    ESP_LOGI(TAG, "Successfully processed album art: %dx%d, size=%d", width, height,
+             albumArt->data->size());
+
+    return albumArt;
+}
 
 void Spotify::playlist_play_cb(lv_event_t* e)
 {
@@ -138,7 +271,7 @@ void Spotify::task()
                                                     ? m_currentlyPlayingInfo.progress_ms
                                                     : 0}};
                     }
-                    printf("Play body: %s\n", body.dump().c_str());
+
                     auto resp = m_spotifyClient.put("me/player/play", body.dump(), true);
                     if (resp && resp->contains("error") == false)
                     {
@@ -269,13 +402,17 @@ void Spotify::task()
                                     (*resp)["item"]["album"]["images"].is_array() &&
                                     !(*resp)["item"]["album"]["images"].empty())
                                 {
-                                    // Get the first image (usually the largest)
-                                    m_currentlyPlayingInfo.album_art_url =
-                                        std::string((*resp)["item"]["album"]["images"][0]["url"]);
-                                    m_currentlyPlayingInfo.album_art_w =
-                                        (*resp)["item"]["album"]["images"][0]["width"];
-                                    m_currentlyPlayingInfo.album_art_h =
-                                        (*resp)["item"]["album"]["images"][0]["height"];
+                                    for (auto& img : (*resp)["item"]["album"]["images"])
+                                    {
+                                        if (img["width"] < 360 && img["height"] < 360)
+                                        {
+                                            // Get the first image (usually the largest)
+                                            m_currentlyPlayingInfo.album_art.url =
+                                                std::string(img["url"]);
+
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                             if ((*resp)["item"].contains("duration_ms"))
@@ -285,12 +422,22 @@ void Spotify::task()
                             }
                             if ((*resp)["item"].contains("uri"))
                             {
-                                // New track started playing, request album art
+                                // New track started playing, handle album art
                                 if (m_currentlyPlayingInfo.currentTrack.track_uri !=
                                     std::string((*resp)["item"]["uri"]))
                                 {
                                     requestQueue();
-                                    getAlbumArt();
+
+                                    // Switch to pre-loaded next album art or get current
+                                    if (m_nextAlbumArt.isValid() &&
+                                        m_nextAlbumArt.url == m_currentlyPlayingInfo.album_art.url)
+                                    {
+                                        switchToNextAlbumArt();
+                                    }
+                                    else
+                                    {
+                                        getCurrentAlbumArt();
+                                    }
                                 }
                                 m_currentlyPlayingInfo.currentTrack.track_uri =
                                     std::string((*resp)["item"]["uri"]);
@@ -435,6 +582,37 @@ void Spotify::task()
                                     std::string song_name = item["name"].get<std::string>();
                                     std::string uri       = item["uri"].get<std::string>();
 
+                                    // Extract album art URL
+                                    std::string album_art_url;
+                                    if (item.contains("album") &&
+                                        item["album"].contains("images") &&
+                                        item["album"]["images"].is_array() &&
+                                        !item["album"]["images"].empty())
+                                    {
+                                        // Find a suitable size image (preferably < 360px)
+                                        for (auto& img : item["album"]["images"])
+                                        {
+                                            if (img.contains("width") && img.contains("height") &&
+                                                img.contains("url"))
+                                            {
+                                                int width  = img["width"];
+                                                int height = img["height"];
+                                                if (width <= 360 && height <= 360)
+                                                {
+                                                    album_art_url = img["url"].get<std::string>();
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        // If no small image found, use the first available
+                                        if (album_art_url.empty() &&
+                                            item["album"]["images"][0].contains("url"))
+                                        {
+                                            album_art_url = item["album"]["images"][0]["url"]
+                                                                .get<std::string>();
+                                        }
+                                    }
+
                                     // --- Match and reconcile logic ---
                                     bool matched = false;
 
@@ -443,6 +621,12 @@ void Spotify::task()
                                     {
                                         if (m_songQueue[i]->song_uri == uri)
                                         {
+                                            // Update album art URL if it's new or empty
+                                            if (!album_art_url.empty() &&
+                                                m_songQueue[i]->album_art_url != album_art_url)
+                                            {
+                                                m_songQueue[i]->album_art_url = album_art_url;
+                                            }
                                             matched = true;
                                             break;
                                         }
@@ -457,7 +641,7 @@ void Spotify::task()
                                     if (!matched)
                                     {
                                         m_songQueue.push_back(std::make_unique<SpotifyQueueItem>(
-                                            song_name, artist_name, uri));
+                                            song_name, artist_name, uri, album_art_url));
                                     }
 
                                     // Move to the next position
@@ -469,6 +653,12 @@ void Spotify::task()
                             if (i < m_songQueue.size())
                             {
                                 m_songQueue.erase(m_songQueue.begin() + i, m_songQueue.end());
+                            }
+
+                            // Trigger next album art download if queue is updated
+                            if (!m_songQueue.empty())
+                            {
+                                getNextAlbumArt();
                             }
                         }
                     }
@@ -594,43 +784,131 @@ void Spotify::task()
                 {
                     setLogLevel(ESP_LOG_INFO);
 
-                    if (!m_currentlyPlayingInfo.album_art_url.empty() &&
-                        m_currentlyPlayingInfo.album_art_url.find("http") == 0)
+                    if (!m_currentlyPlayingInfo.album_art.url.empty() &&
+                        m_currentlyPlayingInfo.album_art.url.find("http") == 0)
                     {
+                        ESP_LOGI(TAG, "Fetching Album Art: %s",
+                                 m_currentlyPlayingInfo.album_art.url.c_str());
+
                         HttpClient                   httpClient;
                         std::unique_ptr<std::string> resp = httpClient.performRequestRaw(
-                            HTTP_METHOD_GET, m_currentlyPlayingInfo.album_art_url);
+                            HTTP_METHOD_GET, m_currentlyPlayingInfo.album_art.url);
 
                         if (resp)
                         {
-                            if (m_currentlyPlayingInfo.album_art_data)
+                            if (m_currentlyPlayingInfo.album_art.data)
                             {
-                                m_currentlyPlayingInfo.album_art_data->clear();
+                                m_currentlyPlayingInfo.album_art.data->clear();
                             }
 
-                            m_currentlyPlayingInfo.album_art_data = std::move(resp);
-                            ESP_LOGI(TAG, "Album art fetched: %s len=%d",
-                                     m_currentlyPlayingInfo.album_art_url.c_str(),
-                                     m_currentlyPlayingInfo.album_art_data->size());
+                            // Decode JPEG/PNG to raw RGB565 data for LVGL
+                            std::unique_ptr<std::string> decoded_data = nullptr;
+                            uint16_t                     decoded_w = 0, decoded_h = 0;
 
-                            album_image.data =
-                                (const uint8_t*) m_currentlyPlayingInfo.album_art_data->data();
-                            album_image.data_size = m_currentlyPlayingInfo.album_art_data->size();
-                            album_image.header.w  = m_currentlyPlayingInfo.album_art_w;
-                            album_image.header.h  = m_currentlyPlayingInfo.album_art_h;
+                            // Check if it's a JPEG (starts with FF D8) or PNG (starts with 89 50 4E 47)
+                            if (resp->size() >= 4)
+                            {
+                                uint8_t* data = (uint8_t*) resp->data();
+                                if (data[0] == 0xFF && data[1] == 0xD8)
+                                {
+                                    // JPEG image
+                                    decoded_data = decodeJpegToRgb565(*resp, decoded_w, decoded_h);
+                                }
+                            }
 
-                            ui_lvgl_lock(-1);
-                            lv_img_set_src(ui_Album_Art_Image, &album_image);
-                            uint16_t zoom = 256 * std::min(360.0 / (float) album_image.header.w,
-                                                           360.0 / (float) album_image.header.h);
-                            lv_img_set_zoom(ui_Album_Art_Image, zoom);
-                            ui_lvgl_unlock();
+                            if (decoded_data)
+                            {
+                                m_currentlyPlayingInfo.album_art.data   = std::move(decoded_data);
+                                m_currentlyPlayingInfo.album_art.width  = decoded_w;
+                                m_currentlyPlayingInfo.album_art.height = decoded_h;
+
+                                // Update album image structure for LVGL
+                                album_image.header.w = decoded_w;
+                                album_image.header.h = decoded_h;
+                                album_image.header.cf =
+                                    LV_IMG_CF_TRUE_COLOR; // RGB565 is considered true color in LVGL
+                                album_image.data =
+                                    (const uint8_t*) m_currentlyPlayingInfo.album_art.data->data();
+                                album_image.data_size =
+                                    m_currentlyPlayingInfo.album_art.data->size();
+
+                                // Calculate and set zoom to fit in 360x360 area
+                                float zoom = 256.0f * std::min(360.0f / (float) decoded_w,
+                                                               360.0f / (float) decoded_h);
+
+                                ui_lvgl_lock(-1);
+                                lv_img_set_src(ui_Album_Art_Image, &album_image);
+                                lv_img_set_zoom(ui_Album_Art_Image, static_cast<uint16_t>(zoom));
+                                ui_lvgl_unlock();
+                            }
+                            else
+                            {
+                                // Fallback: use raw data (won't support zoom)
+                                m_currentlyPlayingInfo.album_art.data = std::move(resp);
+                            }
+
+                            ESP_LOGI(TAG, "Album art processed: %s len=%d  %dx%d",
+                                     m_currentlyPlayingInfo.album_art.url.c_str(),
+                                     m_currentlyPlayingInfo.album_art.data->size(),
+                                     m_currentlyPlayingInfo.album_art.width,
+                                     m_currentlyPlayingInfo.album_art.height);
                         }
                     }
 
                     setLogLevel(previous_level);
                 }
                 break;
+
+                case SpotifyActionType::GetCurrentAlbumArt:
+                {
+                    setLogLevel(ESP_LOG_INFO);
+
+                    if (!m_currentlyPlayingInfo.album_art.url.empty())
+                    {
+                        auto albumArt =
+                            downloadAndDecodeAlbumArt(m_currentlyPlayingInfo.album_art.url);
+                        if (albumArt)
+                        {
+                            m_currentlyPlayingInfo.album_art = std::move(*albumArt);
+                            displayCurrentAlbumArt();
+
+                            // Start downloading next song's art
+                            getNextAlbumArt();
+                        }
+                    }
+                    else
+                    {
+                        ESP_LOGW(TAG, "No album art URL available for current track");
+                    }
+
+                    setLogLevel(previous_level);
+                }
+                break;
+
+                case SpotifyActionType::GetNextAlbumArt:
+                {
+                    setLogLevel(ESP_LOG_INFO);
+
+                    std::string nextUrl = getNextSongAlbumArtUrl();
+                    if (!nextUrl.empty() && nextUrl != m_nextAlbumArt.url)
+                    {
+                        auto albumArt = downloadAndDecodeAlbumArt(nextUrl);
+                        if (albumArt)
+                        {
+                            m_nextAlbumArt = std::move(*albumArt);
+                            ESP_LOGI(TAG, "Pre-loaded next album art: %dx%d", m_nextAlbumArt.width,
+                                     m_nextAlbumArt.height);
+                        }
+                    }
+                    else
+                    {
+                        ESP_LOGW(TAG, "No next song album art URL available or already cached");
+                    }
+
+                    setLogLevel(previous_level);
+                }
+                break;
+
                 default:
                     break;
             }
@@ -825,6 +1103,71 @@ bool Spotify::getAlbumArt()
     SpotifyAction* action = new SpotifyAction{SpotifyActionType::GetAlbumArt, m_verbose};
     QUEUE_ACTION_AND_RET(action);
 }
+
+bool Spotify::getCurrentAlbumArt()
+{
+    SpotifyAction* action = new SpotifyAction{SpotifyActionType::GetCurrentAlbumArt, m_verbose};
+    QUEUE_ACTION_AND_RET(action);
+}
+
+bool Spotify::getNextAlbumArt()
+{
+    SpotifyAction* action = new SpotifyAction{SpotifyActionType::GetNextAlbumArt, m_verbose};
+    QUEUE_ACTION_AND_RET(action);
+}
+
+void Spotify::displayCurrentAlbumArt()
+{
+    if (!m_currentlyPlayingInfo.album_art.isValid())
+    {
+        ESP_LOGW(TAG, "No valid current album art to display");
+        return;
+    }
+
+    // Update album image structure for LVGL
+    album_image.header.w  = m_currentlyPlayingInfo.album_art.width;
+    album_image.header.h  = m_currentlyPlayingInfo.album_art.height;
+    album_image.header.cf = LV_IMG_CF_TRUE_COLOR; // RGB565 is considered true color in LVGL
+    album_image.data      = (const uint8_t*) m_currentlyPlayingInfo.album_art.data->data();
+    album_image.data_size = m_currentlyPlayingInfo.album_art.data->size();
+
+    // Calculate and set zoom to fit in 360x360 area
+    float zoom = 256.0f * std::min(360.0f / (float) m_currentlyPlayingInfo.album_art.width,
+                                   360.0f / (float) m_currentlyPlayingInfo.album_art.height);
+
+    ui_lvgl_lock(-1);
+    lv_img_set_src(ui_Album_Art_Image, &album_image);
+    lv_img_set_zoom(ui_Album_Art_Image, static_cast<uint16_t>(zoom));
+    ui_lvgl_unlock();
+
+    ESP_LOGI(TAG, "Displayed album art: %dx%d, zoom=%.1f", m_currentlyPlayingInfo.album_art.width,
+             m_currentlyPlayingInfo.album_art.height, zoom / 256.0f);
+}
+
+void Spotify::switchToNextAlbumArt()
+{
+    if (m_nextAlbumArt.isValid())
+    {
+        ESP_LOGI(TAG, "Switching to next album art");
+        m_currentlyPlayingInfo.album_art = std::move(m_nextAlbumArt);
+        m_nextAlbumArt.clear();
+        displayCurrentAlbumArt();
+    }
+    else
+    {
+        ESP_LOGW(TAG, "No next album art available to switch to");
+        m_currentlyPlayingInfo.album_art.clear();
+    }
+}
+
+std::string Spotify::getNextSongAlbumArtUrl()
+{
+    if (!m_songQueue.empty())
+    {
+        return m_songQueue[0]->album_art_url;
+    }
+    return "";
+}
 std::string Spotify::TrackInfo::toString()
 {
     return "Track: " + name + ", Artist: " + artist + ", Album: " + album;
@@ -863,7 +1206,7 @@ const char* SPOTIFY_USAGE_STRING = "Spotify command usage:\n"
                                    "  spotify <action>\n"
                                    "    action: 'play', 'pause', 'next', 'previous', 'status', "
                                    "'shuffle', 'update', 'getQueue', 'refreshToken', 'userInfo', "
-                                   "'getPlaylists', 'repeat'\n";
+                                   "'getPlaylists', 'repeat', 'getAlbumArt', 'getNextAlbumArt'\n";
 static struct
 {
     struct arg_str* action;
@@ -871,12 +1214,13 @@ static struct
     struct arg_end* end;
 } s_spotify_cmd_args;
 static esp_console_cmd_t s_spotify_cmd_struct{
-    .command  = "spotify",
-    .help     = "Manually run Spotify actions from console",
-    .hint     = NULL,
-    .func     = &spotify_cmd,
-    .argtable = &s_spotify_cmd_args,
-    .context  = NULL,
+    .command        = "spotify",
+    .help           = "Manually run Spotify actions from console",
+    .hint           = NULL,
+    .func           = &spotify_cmd,
+    .argtable       = &s_spotify_cmd_args,
+    .func_w_context = NULL,
+    .context        = NULL,
 };
 
 void spotify_cmd_init()
@@ -885,7 +1229,8 @@ void spotify_cmd_init()
     s_spotify_cmd_args.action =
         arg_str1(NULL, NULL, "<action>",
                  "action: 'play', 'pause', 'next', 'previous', 'status', 'shuffle', 'update', "
-                 "'getQueue', 'refreshToken', 'userInfo', 'getPlaylists', 'repeat'");
+                 "'getQueue', 'refreshToken', 'userInfo', 'getPlaylists', 'repeat', 'getAlbumArt', "
+                 "'getNextAlbumArt'");
     s_spotify_cmd_args.end = arg_end(2);
 
     ESP_ERROR_CHECK(esp_console_cmd_register(&s_spotify_cmd_struct));
@@ -949,6 +1294,14 @@ int spotify_cmd(int argc, char** argv)
     else if (strcmp(action, "getPlaylists") == 0)
     {
         sp.requestPlaylists();
+    }
+    else if (strcmp(action, "getAlbumArt") == 0)
+    {
+        sp.getCurrentAlbumArt();
+    }
+    else if (strcmp(action, "getNextAlbumArt") == 0)
+    {
+        sp.getNextAlbumArt();
     }
     else if (strcmp(action, "repeat") == 0)
     {

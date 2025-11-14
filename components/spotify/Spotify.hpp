@@ -68,19 +68,42 @@ public:
         std::string toString();
     };
     /**
+     * @struct AlbumArt
+     * @brief Contains album art data and dimensions
+     */
+    struct AlbumArt
+    {
+        std::unique_ptr<std::string> data;   ///< Raw RGB565 album art image data
+        uint16_t                     width;  ///< Image width in pixels
+        uint16_t                     height; ///< Image height in pixels
+        std::string                  url;    ///< URL of the album art image
+
+        AlbumArt() : width(0), height(0) {}
+
+        bool isValid() const
+        {
+            return data && !data->empty() && width > 0 && height > 0;
+        }
+        void clear()
+        {
+            data.reset();
+            width  = 0;
+            height = 0;
+            url.clear();
+        }
+    };
+
+    /**
      * @struct CurrentlyPlayingInfo
      * @brief Contains information about the currently playing track and playback progress
      */
     struct CurrentlyPlayingInfo
     {
-        TrackInfo   currentTrack;  ///< Information about the currently playing track
-        std::string context_uri;   ///< URI of the context (playlist, album, etc.) being played
-        int         progress_ms;   ///< Playback progress in milliseconds at timestamp
-        uint64_t    timestamp_ms;  ///< Timestamp when progress was last updated
-        std::string album_art_url; ///< URL of the album art image
-        std::unique_ptr<std::string> album_art_data; ///< Raw album art image data
-        int                          album_art_w;
-        int                          album_art_h;
+        TrackInfo   currentTrack; ///< Information about the currently playing track
+        std::string context_uri;  ///< URI of the context (playlist, album, etc.) being played
+        int         progress_ms;  ///< Playback progress in milliseconds at timestamp
+        uint64_t    timestamp_ms; ///< Timestamp when progress was last updated
+        AlbumArt    album_art;    ///< Album art for the currently playing track
 
         /**
          * @brief Get current playback progress accounting for elapsed time
@@ -336,10 +359,22 @@ public:
     }
 
     /**
-     * @brief Get the album art URL for the currently playing track
+     * @brief Get the album art URL for the currently playing track (deprecated)
      * @return true if successful
      */
     bool getAlbumArt();
+
+    /**
+     * @brief Get and display album art for current track
+     * @return true if successful
+     */
+    bool getCurrentAlbumArt();
+
+    /**
+     * @brief Get and cache album art for next track
+     * @return true if successful
+     */
+    bool getNextAlbumArt();
 
     static void playlist_play_cb(lv_event_t* e);
     static void playlist_queue_cb(lv_event_t* e);
@@ -359,6 +394,8 @@ private:
     std::vector<std::unique_ptr<SpotifyPlaylist>>     m_playlists;
     std::string                                       m_activePlaylistId;
     std::vector<std::unique_ptr<SpotifyPlaylistItem>> m_playlistItems;
+
+    AlbumArt m_nextAlbumArt; ///< Album art for the next track (pre-loaded for caching)
 
     std::atomic<bool> m_volumeCmdInProgress{false};
     std::atomic<int>  m_desiredVolume{-1};
@@ -395,6 +432,39 @@ private:
      * @return True if the action was successfully queued, false otherwise
      */
     bool queueSetVolume();
+
+    /**
+     * @brief Display the current album art on the UI
+     */
+    void displayCurrentAlbumArt();
+
+    /**
+     * @brief Switch to next album art (currently just clears current)
+     */
+    void switchToNextAlbumArt();
+
+    /**
+     * @brief Get next song's album art URL from the queue
+     * @return URL of next song's album art, empty if not available
+     */
+    std::string getNextSongAlbumArtUrl();
+
+    /**
+     * @brief Decode JPEG image data to RGB565 format
+     * @param jpeg_data Input JPEG image data
+     * @param width Output image width in pixels
+     * @param height Output image height in pixels
+     * @return Unique pointer to decoded RGB565 image data string
+     */
+    std::unique_ptr<std::string> decodeJpegToRgb565(const std::string& jpeg_data, uint16_t& width,
+                                                    uint16_t& height);
+
+    /**
+     * @brief Download and decode album art from a given URL
+     * @param url URL of the album art image
+     * @return Unique pointer to AlbumArt structure containing decoded image data
+     */
+    std::unique_ptr<Spotify::AlbumArt> downloadAndDecodeAlbumArt(const std::string& url);
 
     /**
      * @brief Main task function that processes Spotify actions from the queue
@@ -435,7 +505,9 @@ private:
         GetPlaylist,            ///< Get a specific playlist
         GetUserInfo,            ///< Get user information
         AddToQueue,             ///< Add a track to the playback queue
-        GetAlbumArt             ///< Get album art for the currently playing track
+        GetAlbumArt,            ///< Get album art for the currently playing track
+        GetCurrentAlbumArt,     ///< Get and display album art for current track
+        GetNextAlbumArt         ///< Get and cache album art for next track
     };
 
     /**
@@ -495,6 +567,20 @@ private:
                     return "UpdatePlaybackState";
                 case SpotifyActionType::GetQueue:
                     return "GetQueue";
+                case SpotifyActionType::GetPlaylists:
+                    return "GetPlaylists";
+                case SpotifyActionType::GetPlaylist:
+                    return "GetPlaylist";
+                case SpotifyActionType::GetUserInfo:
+                    return "GetUserInfo";
+                case SpotifyActionType::AddToQueue:
+                    return "AddToQueue";
+                case SpotifyActionType::GetAlbumArt:
+                    return "GetAlbumArt";
+                case SpotifyActionType::GetCurrentAlbumArt:
+                    return "GetCurrentAlbumArt";
+                case SpotifyActionType::GetNextAlbumArt:
+                    return "GetNextAlbumArt";
                 default:
                     return "Unknown";
             }
