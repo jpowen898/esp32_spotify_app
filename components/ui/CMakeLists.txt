@@ -2,7 +2,6 @@
 file(GLOB UI_SRCS
     "generated/*.c"
     "generated/components/*.c"
-    "generated/fonts/*.c"
     "generated/images/*.c"
     "generated/screens/*.c"
 )
@@ -21,7 +20,6 @@ idf_component_register(
         "."
         "generated/"
         "generated/components/"
-        "generated/fonts/"
         "generated/images/"
         "generated/screens/"
 )
